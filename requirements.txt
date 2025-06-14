@@ -1,0 +1,9 @@
+pytorch
+transformers
+fastapi
+uvicorn
+huggingface
+scikit-learn
+matplotlib
+seaborn
+supabase
