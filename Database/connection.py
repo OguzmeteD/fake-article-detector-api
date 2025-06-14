@@ -1,10 +1,22 @@
-import os
-from supabase import create_client, Client
 
-from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import sessionmaker
+# --- Database/connection.py ---
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-DATABASE_URL="postgresql://postgres.wxejuthasudpujcdrytk:12345oguz12345.@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-engine= create_engine(DATABASE_URL)
-SessionSupabase = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

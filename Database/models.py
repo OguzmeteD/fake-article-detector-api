@@ -1,29 +1,43 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+import uuid
+from sqlalchemy import Column, String, DateTime, Text, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from Database.connection import Base
 from datetime import datetime
-from sqlalchemy.sql import func
+from Database.connection import Base
 
 
+class AppUser(Base):
+    __tablename__ = 'app_users'
 
-class User(Base):
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    predictions = relationship("Prediction", back_populates="user")
+
+
 class Prediction(Base):
     __tablename__ = 'predictions'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    model_name = Column(String)
-    input_data = Column(Text)
-    output_data = Column(Text)
-    created_at = Column(DateTime)
-    
-    user = relationship("User", back_populates="predictions")
-User.predictions = relationship("Prediction", order_by=Prediction.id, back_populates="user")
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('app_users.id'), nullable=True)
+
+    model_name = Column(String, nullable=True)
+    input_data = Column(Text, nullable=True)
+    output_data = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("AppUser", back_populates="predictions")
+
+class Feedback(Base):
+    __tablename__ = 'feedbacks'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('app_users.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("AppUser")
